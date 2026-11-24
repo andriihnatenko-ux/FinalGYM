@@ -27,6 +27,7 @@ public static class ConfigurePersistenceServices
                 warnings.Ignore(RelationalEventId.PendingModelChangesWarning);
             }));
 
+        services.AddScoped<ApplicationDbContextInitialiser>();
         services.AddRepositories();
     }
 
