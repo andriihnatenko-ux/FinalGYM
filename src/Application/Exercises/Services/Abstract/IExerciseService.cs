@@ -13,9 +13,9 @@ public interface IExerciseService
         string description,
         int caloriesPerHour,
         bool requiresEquipment,
-        MuscleGroup targetMuscleGroup,
         int sets,
         int reps,
+        IReadOnlyList<Guid> muscleGroupIds,
         ExerciseAttributes? attributes,
         CancellationToken cancellationToken);
 
@@ -25,11 +25,17 @@ public interface IExerciseService
         string description,
         int caloriesPerHour,
         bool requiresEquipment,
-        MuscleGroup targetMuscleGroup,
         int sets,
         int reps,
+        IReadOnlyList<Guid> muscleGroupIds,
         ExerciseAttributes? attributes,
         CancellationToken cancellationToken);
 
     Task<bool> Delete(Guid id, CancellationToken cancellationToken);
+
+    Task<ExerciseImage?> AddImage(
+        Guid exerciseId,
+        string originalName,
+        Stream content,
+        CancellationToken cancellationToken);
 }

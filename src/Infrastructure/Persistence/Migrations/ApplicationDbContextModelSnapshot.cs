@@ -39,10 +39,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("timezone('utc', now())");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("name");
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("description");
 
                     b.Property<int>("Reps")
                         .HasColumnType("integer")
@@ -56,19 +56,167 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("sets");
 
-                    b.Property<string>("TargetMuscleGroup")
+                    b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("target_muscle_group");
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
                     b.HasKey("Id")
                         .HasName("pk_exercises");
 
-                    b.HasIndex("Name")
+                    b.HasIndex("Title")
                         .IsUnique()
-                        .HasDatabaseName("ix_exercises_name");
+                        .HasDatabaseName("ix_exercises_title");
 
                     b.ToTable("exercises", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Exercises.ExerciseImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ExerciseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("exercise_id");
+
+                    b.Property<string>("OriginalName")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("original_name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_exercise_images");
+
+                    b.HasIndex("ExerciseId")
+                        .HasDatabaseName("ix_exercise_images_exercise_id");
+
+                    b.ToTable("exercise_images", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Exercises.ExerciseMuscleGroup", b =>
+                {
+                    b.Property<Guid>("ExerciseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("exercise_id");
+
+                    b.Property<Guid>("MuscleGroupId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("muscle_group_id");
+
+                    b.HasKey("ExerciseId", "MuscleGroupId")
+                        .HasName("pk_exercise_muscle_groups");
+
+                    b.HasIndex("MuscleGroupId")
+                        .HasDatabaseName("ix_exercise_muscle_groups_muscle_group_id");
+
+                    b.ToTable("exercise_muscle_groups", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.MuscleGroups.MuscleGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("timezone('utc', now())");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_muscle_groups");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_muscle_groups_name");
+
+                    b.ToTable("muscle_groups", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Exercises.Exercise", b =>
+                {
+                    b.OwnsOne("Domain.Exercises.ExerciseAttributes", "Attributes", b1 =>
+                        {
+                            b1.Property<Guid>("ExerciseId");
+
+                            b1.Property<string>("Difficulty")
+                                .HasMaxLength(100);
+
+                            b1.Property<string>("Equipment")
+                                .HasMaxLength(100);
+
+                            b1.Property<string>("Notes")
+                                .HasMaxLength(500);
+
+                            b1.HasKey("ExerciseId");
+
+                            b1.ToTable("exercises");
+
+                            b1
+                                .ToJson("attributes")
+                                .HasColumnType("jsonb");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ExerciseId")
+                                .HasConstraintName("fk_exercises_exercises_id");
+                        });
+
+                    b.Navigation("Attributes")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Exercises.ExerciseImage", b =>
+                {
+                    b.HasOne("Domain.Exercises.Exercise", "Exercise")
+                        .WithMany("Images")
+                        .HasForeignKey("ExerciseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_exercise_images_exercises_exercise_id");
+
+                    b.Navigation("Exercise");
+                });
+
+            modelBuilder.Entity("Domain.Exercises.ExerciseMuscleGroup", b =>
+                {
+                    b.HasOne("Domain.Exercises.Exercise", "Exercise")
+                        .WithMany("MuscleGroups")
+                        .HasForeignKey("ExerciseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_exercise_muscle_groups_exercises_exercise_id");
+
+                    b.HasOne("Domain.MuscleGroups.MuscleGroup", "MuscleGroup")
+                        .WithMany()
+                        .HasForeignKey("MuscleGroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_exercise_muscle_groups_muscle_groups_muscle_group_id");
+
+                    b.Navigation("Exercise");
+
+                    b.Navigation("MuscleGroup");
+                });
+
+            modelBuilder.Entity("Domain.Exercises.Exercise", b =>
+                {
+                    b.Navigation("Images");
+
+                    b.Navigation("MuscleGroups");
                 });
 #pragma warning restore 612, 618
         }

@@ -9,12 +9,13 @@ public record ExerciseDto(
     string Description,
     int CaloriesPerHour,
     bool RequiresEquipment,
-    MuscleGroup TargetMuscleGroup,
     int Sets,
     int Reps,
     ExerciseAttributesDto Attributes,
     DateTime CreatedAt,
-    DateTime? UpdatedAt)
+    DateTime? UpdatedAt,
+    IReadOnlyList<MuscleGroupDto> MuscleGroups,
+    IReadOnlyList<ExerciseImageDto> Images)
 {
     public static ExerciseDto FromDomainModel(Exercise exercise) =>
         new(
@@ -23,12 +24,17 @@ public record ExerciseDto(
             exercise.Description,
             exercise.CaloriesPerHour,
             exercise.RequiresEquipment,
-            exercise.TargetMuscleGroup,
             exercise.Sets,
             exercise.Reps,
             ExerciseAttributesDto.FromDomainModel(exercise.Attributes),
             exercise.CreatedAt,
-            exercise.UpdatedAt);
+            exercise.UpdatedAt,
+            exercise.MuscleGroups
+                .Select(x => MuscleGroupDto.FromDomainModel(x.MuscleGroup))
+                .ToList(),
+            exercise.Images
+                .Select(ExerciseImageDto.FromDomainModel)
+                .ToList());
 }
 
 public record ExerciseAttributesDto(
@@ -43,14 +49,20 @@ public record ExerciseAttributesDto(
         ExerciseAttributes.Create(Difficulty, Equipment, Notes);
 }
 
+public record ExerciseImageDto(Guid Id, string OriginalName)
+{
+    public static ExerciseImageDto FromDomainModel(ExerciseImage image) =>
+        new(image.Id, image.OriginalName);
+}
+
 public record CreateExerciseDto(
     [Required, MinLength(3), MaxLength(255)] string Title,
     [Required, MinLength(3), MaxLength(500)] string Description,
     [Range(1, 5_000)] int CaloriesPerHour,
     bool RequiresEquipment,
-    [EnumDataType(typeof(MuscleGroup))] MuscleGroup TargetMuscleGroup,
     [Range(1, 100)] int Sets,
     [Range(1, 100)] int Reps,
+    [Required, MinLength(1)] IReadOnlyList<Guid> MuscleGroupIds,
     ExerciseAttributesDto? Attributes);
 
 public record UpdateExerciseDto(
@@ -58,7 +70,7 @@ public record UpdateExerciseDto(
     [Required, MinLength(3), MaxLength(500)] string Description,
     [Range(1, 5_000)] int CaloriesPerHour,
     bool RequiresEquipment,
-    [EnumDataType(typeof(MuscleGroup))] MuscleGroup TargetMuscleGroup,
     [Range(1, 100)] int Sets,
     [Range(1, 100)] int Reps,
+    [Required, MinLength(1)] IReadOnlyList<Guid> MuscleGroupIds,
     ExerciseAttributesDto? Attributes);

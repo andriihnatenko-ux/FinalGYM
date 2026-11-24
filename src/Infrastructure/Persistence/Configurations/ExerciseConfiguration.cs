@@ -27,11 +27,6 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
         builder.Property(x => x.Sets).IsRequired();
         builder.Property(x => x.Reps).IsRequired();
 
-        builder.Property(x => x.TargetMuscleGroup)
-            .HasConversion<string>()
-            .HasColumnType("varchar(50)")
-            .IsRequired();
-
         builder.OwnsOne(x => x.Attributes, attributes =>
         {
             attributes.ToJson();
@@ -48,5 +43,21 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
         builder.Property(x => x.UpdatedAt)
             .HasConversion(new NullableDateTimeUtcConverter())
             .HasColumnType("timestamp with time zone");
+
+        builder.HasMany(x => x.MuscleGroups)
+            .WithOne(x => x.Exercise)
+            .HasForeignKey(x => x.ExerciseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(x => x.MuscleGroups)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany(x => x.Images)
+            .WithOne(x => x.Exercise)
+            .HasForeignKey(x => x.ExerciseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(x => x.Images)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

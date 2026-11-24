@@ -10,12 +10,18 @@ public class ExerciseRepository(ApplicationDbContext context) : IExerciseReposit
     {
         return await context.Exercises
             .AsNoTracking()
+            .Include(x => x.MuscleGroups)
+            .ThenInclude(x => x.MuscleGroup)
+            .Include(x => x.Images)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<Exercise?> GetById(Guid id, CancellationToken cancellationToken)
     {
         return await context.Exercises
+            .Include(x => x.MuscleGroups)
+            .ThenInclude(x => x.MuscleGroup)
+            .Include(x => x.Images)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
@@ -34,14 +40,35 @@ public class ExerciseRepository(ApplicationDbContext context) : IExerciseReposit
 
     public async Task<Exercise> Update(Exercise exercise, CancellationToken cancellationToken)
     {
-        context.Exercises.Update(exercise);
-        await context.SaveChangesAsync(cancellationToken);
-        return exercise;
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            if (context.Entry(exercise).State == EntityState.Detached)
+            {
+                context.Exercises.Update(exercise);
+            }
+
+            await context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return exercise;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 
     public async Task Delete(Exercise exercise, CancellationToken cancellationToken)
     {
         context.Exercises.Remove(exercise);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task AddImage(ExerciseImage image, CancellationToken cancellationToken)
+    {
+        await context.ExerciseImages.AddAsync(image, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
     }
 }

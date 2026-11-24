@@ -1,4 +1,5 @@
 using Api.Dtos;
+using Application.Exercises.Exceptions;
 using Application.Exercises.Services.Abstract;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,18 +40,30 @@ public class ExercisesController(IExerciseService exerciseService) : ControllerB
                 request.Description,
                 request.CaloriesPerHour,
                 request.RequiresEquipment,
-                request.TargetMuscleGroup,
                 request.Sets,
                 request.Reps,
+                request.MuscleGroupIds,
                 request.Attributes?.ToDomainModel(),
                 cancellationToken);
 
             var dto = ExerciseDto.FromDomainModel(exercise);
             return CreatedAtAction(nameof(GetExercise), new { id = dto.Id }, dto);
         }
-        catch (ArgumentException exception)
+        catch (ExerciseAlreadyExistsException exception)
         {
             return Conflict(exception.Message);
+        }
+        catch (MuscleGroupsNotFoundException exception)
+        {
+            return NotFound(new
+            {
+                message = exception.Message,
+                missingGroupIds = exception.MissingGroupIds
+            });
+        }
+        catch (InvalidExerciseRequestException exception)
+        {
+            return BadRequest(exception.Message);
         }
     }
 
@@ -68,9 +81,9 @@ public class ExercisesController(IExerciseService exerciseService) : ControllerB
                 request.Description,
                 request.CaloriesPerHour,
                 request.RequiresEquipment,
-                request.TargetMuscleGroup,
                 request.Sets,
                 request.Reps,
+                request.MuscleGroupIds,
                 request.Attributes?.ToDomainModel(),
                 cancellationToken);
 
@@ -81,9 +94,21 @@ public class ExercisesController(IExerciseService exerciseService) : ControllerB
 
             return ExerciseDto.FromDomainModel(exercise);
         }
-        catch (ArgumentException exception)
+        catch (ExerciseAlreadyExistsException exception)
         {
             return Conflict(exception.Message);
+        }
+        catch (MuscleGroupsNotFoundException exception)
+        {
+            return NotFound(new
+            {
+                message = exception.Message,
+                missingGroupIds = exception.MissingGroupIds
+            });
+        }
+        catch (InvalidExerciseRequestException exception)
+        {
+            return BadRequest(exception.Message);
         }
     }
 
@@ -97,5 +122,27 @@ public class ExercisesController(IExerciseService exerciseService) : ControllerB
         }
 
         return NoContent();
+    }
+
+    [HttpPost("{id:guid}/images")]
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<ExerciseImageDto>> UploadImage(
+        Guid id,
+        [FromForm] IFormFile file,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest("File is required.");
+        }
+
+        await using var content = file.OpenReadStream();
+        var image = await exerciseService.AddImage(id, file.FileName, content, cancellationToken);
+        if (image is null)
+        {
+            return NotFound();
+        }
+
+        return Created($"/exercises/{id}/images/{image.Id}", ExerciseImageDto.FromDomainModel(image));
     }
 }

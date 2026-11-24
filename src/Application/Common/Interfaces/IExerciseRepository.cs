@@ -15,4 +15,6 @@ public interface IExerciseRepository
     Task<Exercise> Update(Exercise exercise, CancellationToken cancellationToken);
 
     Task Delete(Exercise exercise, CancellationToken cancellationToken);
+
+    Task AddImage(ExerciseImage image, CancellationToken cancellationToken);
 }
