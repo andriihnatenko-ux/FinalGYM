@@ -35,5 +35,7 @@ public static class ConfigurePersistenceServices
     {
         services.AddScoped<ExerciseRepository>();
         services.AddScoped<IExerciseRepository>(provider => provider.GetRequiredService<ExerciseRepository>());
+        services.AddScoped<MuscleGroupRepository>();
+        services.AddScoped<IMuscleGroupRepository>(provider => provider.GetRequiredService<MuscleGroupRepository>());
     }
 }
