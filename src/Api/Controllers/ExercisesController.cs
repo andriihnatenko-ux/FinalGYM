@@ -35,12 +35,14 @@ public class ExercisesController(IExerciseService exerciseService) : ControllerB
         try
         {
             var exercise = await exerciseService.Add(
-                request.Name,
+                request.Title,
+                request.Description,
                 request.CaloriesPerHour,
                 request.RequiresEquipment,
                 request.TargetMuscleGroup,
                 request.Sets,
                 request.Reps,
+                request.Attributes?.ToDomainModel(),
                 cancellationToken);
 
             var dto = ExerciseDto.FromDomainModel(exercise);
@@ -62,12 +64,14 @@ public class ExercisesController(IExerciseService exerciseService) : ControllerB
         {
             var exercise = await exerciseService.Update(
                 id,
-                request.Name,
+                request.Title,
+                request.Description,
                 request.CaloriesPerHour,
                 request.RequiresEquipment,
                 request.TargetMuscleGroup,
                 request.Sets,
                 request.Reps,
+                request.Attributes?.ToDomainModel(),
                 cancellationToken);
 
             if (exercise is null)

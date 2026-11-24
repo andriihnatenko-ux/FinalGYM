@@ -19,10 +19,10 @@ public class ExerciseRepository(ApplicationDbContext context) : IExerciseReposit
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
-    public async Task<Exercise?> GetByName(string name, CancellationToken cancellationToken)
+    public async Task<Exercise?> GetByTitle(string title, CancellationToken cancellationToken)
     {
         return await context.Exercises
-            .FirstOrDefaultAsync(x => x.Name == name, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Title == title, cancellationToken);
     }
 
     public async Task<Exercise> Add(Exercise exercise, CancellationToken cancellationToken)

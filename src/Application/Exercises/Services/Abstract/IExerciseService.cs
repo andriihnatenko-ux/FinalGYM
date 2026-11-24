@@ -9,22 +9,26 @@ public interface IExerciseService
     Task<Exercise?> GetExercise(Guid id, CancellationToken cancellationToken);
 
     Task<Exercise> Add(
-        string name,
+        string title,
+        string description,
         int caloriesPerHour,
         bool requiresEquipment,
         MuscleGroup targetMuscleGroup,
         int sets,
         int reps,
+        ExerciseAttributes? attributes,
         CancellationToken cancellationToken);
 
     Task<Exercise?> Update(
         Guid id,
-        string name,
+        string title,
+        string description,
         int caloriesPerHour,
         bool requiresEquipment,
         MuscleGroup targetMuscleGroup,
         int sets,
         int reps,
+        ExerciseAttributes? attributes,
         CancellationToken cancellationToken);
 
     Task<bool> Delete(Guid id, CancellationToken cancellationToken);

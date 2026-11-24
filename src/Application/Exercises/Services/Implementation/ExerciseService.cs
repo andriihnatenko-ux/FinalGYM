@@ -17,40 +17,46 @@ public class ExerciseService(IExerciseRepository exerciseRepository) : IExercise
     }
 
     public async Task<Exercise> Add(
-        string name,
+        string title,
+        string description,
         int caloriesPerHour,
         bool requiresEquipment,
         MuscleGroup targetMuscleGroup,
         int sets,
         int reps,
+        ExerciseAttributes? attributes,
         CancellationToken cancellationToken)
     {
-        var existingExercise = await exerciseRepository.GetByName(name, cancellationToken);
+        var existingExercise = await exerciseRepository.GetByTitle(title, cancellationToken);
         if (existingExercise is not null)
         {
-            throw new ArgumentException($"Exercise with name '{name}' already exists");
+            throw new ArgumentException($"Exercise with title '{title}' already exists");
         }
 
         var exercise = Exercise.New(
             Guid.NewGuid(),
-            name,
+            title,
+            description,
             caloriesPerHour,
             requiresEquipment,
             targetMuscleGroup,
             sets,
-            reps);
+            reps,
+            attributes);
 
         return await exerciseRepository.Add(exercise, cancellationToken);
     }
 
     public async Task<Exercise?> Update(
         Guid id,
-        string name,
+        string title,
+        string description,
         int caloriesPerHour,
         bool requiresEquipment,
         MuscleGroup targetMuscleGroup,
         int sets,
         int reps,
+        ExerciseAttributes? attributes,
         CancellationToken cancellationToken)
     {
         var exercise = await exerciseRepository.GetById(id, cancellationToken);
@@ -59,13 +65,21 @@ public class ExerciseService(IExerciseRepository exerciseRepository) : IExercise
             return null;
         }
 
-        var exerciseWithSameName = await exerciseRepository.GetByName(name, cancellationToken);
-        if (exerciseWithSameName is not null && exerciseWithSameName.Id != id)
+        var exerciseWithSameTitle = await exerciseRepository.GetByTitle(title, cancellationToken);
+        if (exerciseWithSameTitle is not null && exerciseWithSameTitle.Id != id)
         {
-            throw new ArgumentException($"Exercise with name '{name}' already exists");
+            throw new ArgumentException($"Exercise with title '{title}' already exists");
         }
 
-        exercise.UpdateDetails(name, caloriesPerHour, requiresEquipment, targetMuscleGroup, sets, reps);
+        exercise.UpdateDetails(
+            title,
+            description,
+            caloriesPerHour,
+            requiresEquipment,
+            targetMuscleGroup,
+            sets,
+            reps,
+            attributes);
 
         return await exerciseRepository.Update(exercise, cancellationToken);
     }
