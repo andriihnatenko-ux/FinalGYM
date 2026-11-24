@@ -32,6 +32,7 @@ public static class ConfigurePersistenceServices
 
     private static void AddRepositories(this IServiceCollection services)
     {
-        services.AddSingleton<IExerciseRepository, ExerciseRepository>();
+        services.AddScoped<ExerciseRepository>();
+        services.AddScoped<IExerciseRepository>(provider => provider.GetRequiredService<ExerciseRepository>());
     }
 }
