@@ -27,14 +27,15 @@ public class UpdateExerciseCommandHandler(
         UpdateExerciseCommand request,
         CancellationToken cancellationToken)
     {
-        var exercise = await exerciseRepository.GetById(request.Id, cancellationToken);
+        var exerciseId = new ExerciseId(request.Id);
+        var exercise = await exerciseRepository.GetById(exerciseId, cancellationToken);
         if (exercise is null)
         {
             return null;
         }
 
         var exerciseWithSameTitle = await exerciseRepository.GetByTitle(request.Title, cancellationToken);
-        if (exerciseWithSameTitle is not null && exerciseWithSameTitle.Id != request.Id)
+        if (exerciseWithSameTitle is not null && exerciseWithSameTitle.Id != exerciseId)
         {
             throw new ExerciseAlreadyExistsException(request.Title);
         }
@@ -57,6 +58,6 @@ public class UpdateExerciseCommandHandler(
 
         await exerciseRepository.Update(exercise, cancellationToken);
 
-        return await exerciseRepository.GetById(request.Id, cancellationToken) ?? exercise;
+        return await exerciseRepository.GetById(exerciseId, cancellationToken) ?? exercise;
     }
 }

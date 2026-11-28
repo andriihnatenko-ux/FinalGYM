@@ -5,7 +5,7 @@ public class Exercise
     private readonly List<ExerciseMuscleGroup> _muscleGroups = [];
     private readonly List<ExerciseImage> _images = [];
 
-    public Guid Id { get; private set; }
+    public ExerciseId Id { get; private set; }
     public string Title { get; private set; }
     public string Description { get; private set; }
     public int CaloriesPerHour { get; private set; }
@@ -21,13 +21,14 @@ public class Exercise
 
     private Exercise()
     {
+        Id = ExerciseId.Empty();
         Title = string.Empty;
         Description = string.Empty;
         Attributes = ExerciseAttributes.Empty();
     }
 
     public static Exercise New(
-        Guid id,
+        ExerciseId id,
         string title,
         string description,
         int caloriesPerHour,

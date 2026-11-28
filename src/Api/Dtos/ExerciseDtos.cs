@@ -19,7 +19,7 @@ public record ExerciseDto(
 {
     public static ExerciseDto FromDomainModel(Exercise exercise) =>
         new(
-            exercise.Id,
+            exercise.Id.Value,
             exercise.Title,
             exercise.Description,
             exercise.CaloriesPerHour,

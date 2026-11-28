@@ -17,7 +17,7 @@ public class ExerciseRepository(ApplicationDbContext context) : IExerciseReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<Exercise?> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<Exercise?> GetById(ExerciseId id, CancellationToken cancellationToken)
     {
         return await context.Exercises
             .Include(x => x.MuscleGroups)

@@ -40,7 +40,7 @@ public class CreateExerciseCommandHandler(
             cancellationToken);
 
         var exercise = Exercise.New(
-            Guid.NewGuid(),
+            ExerciseId.New(),
             request.Title,
             request.Description,
             request.CaloriesPerHour,
@@ -53,7 +53,7 @@ public class CreateExerciseCommandHandler(
 
         await exerciseRepository.Add(exercise, cancellationToken);
         await notificationService.NotifyExerciseCreatedAsync(
-            exercise.Id,
+            exercise.Id.Value,
             exercise.Title,
             cancellationToken);
 

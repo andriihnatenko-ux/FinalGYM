@@ -2,6 +2,7 @@ using Api.Dtos;
 using Application.Common.Interfaces.Queries;
 using Application.Exercises.Commands;
 using Application.Exercises.Exceptions;
+using Domain.Exercises;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,7 +22,7 @@ public class ExercisesController(ISender sender, IExerciseQueries exerciseQuerie
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ExerciseDto>> GetExercise(Guid id, CancellationToken cancellationToken)
     {
-        var exercise = await exerciseQueries.GetById(id, cancellationToken);
+        var exercise = await exerciseQueries.GetById(new ExerciseId(id), cancellationToken);
         if (exercise is null)
         {
             return NotFound();

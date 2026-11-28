@@ -12,6 +12,9 @@ public class ExerciseMuscleGroupConfiguration : IEntityTypeConfiguration<Exercis
 
         builder.HasKey(x => new { x.ExerciseId, x.MuscleGroupId });
 
+        builder.Property(x => x.ExerciseId)
+            .HasConversion(x => x.Value, x => new ExerciseId(x));
+
         builder.HasOne(x => x.Exercise)
             .WithMany(x => x.MuscleGroups)
             .HasForeignKey(x => x.ExerciseId)

@@ -1,4 +1,5 @@
 using Application.Common.Interfaces.Repositories;
+using Domain.Exercises;
 using MediatR;
 
 namespace Application.Exercises.Commands;
@@ -15,7 +16,7 @@ public class DeleteExerciseCommandHandler(IExerciseRepository exerciseRepository
         DeleteExerciseCommand request,
         CancellationToken cancellationToken)
     {
-        var exercise = await exerciseRepository.GetById(request.Id, cancellationToken);
+        var exercise = await exerciseRepository.GetById(new ExerciseId(request.Id), cancellationToken);
         if (exercise is null)
         {
             return false;

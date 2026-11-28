@@ -4,7 +4,7 @@ namespace Application.Common.Interfaces.Repositories;
 
 public interface IExerciseRepository
 {
-    Task<Exercise?> GetById(Guid id, CancellationToken cancellationToken);
+    Task<Exercise?> GetById(ExerciseId id, CancellationToken cancellationToken);
 
     Task<Exercise?> GetByTitle(string title, CancellationToken cancellationToken);
 

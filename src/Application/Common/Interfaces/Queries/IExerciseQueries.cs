@@ -6,5 +6,5 @@ public interface IExerciseQueries
 {
     Task<IReadOnlyList<Exercise>> GetAll(CancellationToken cancellationToken);
 
-    Task<Exercise?> GetById(Guid id, CancellationToken cancellationToken);
+    Task<Exercise?> GetById(ExerciseId id, CancellationToken cancellationToken);
 }

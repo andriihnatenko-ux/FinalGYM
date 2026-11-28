@@ -21,13 +21,14 @@ public class AddExerciseImageCommandHandler(
         AddExerciseImageCommand request,
         CancellationToken cancellationToken)
     {
-        var exercise = await exerciseRepository.GetById(request.ExerciseId, cancellationToken);
+        var exerciseId = new ExerciseId(request.ExerciseId);
+        var exercise = await exerciseRepository.GetById(exerciseId, cancellationToken);
         if (exercise is null)
         {
             return null;
         }
 
-        var image = ExerciseImage.New(Guid.NewGuid(), request.OriginalName, request.ExerciseId);
+        var image = ExerciseImage.New(Guid.NewGuid(), request.OriginalName, exerciseId);
         await exerciseRepository.AddImage(image, cancellationToken);
 
         var extension = Path.GetExtension(request.OriginalName);

@@ -10,6 +10,9 @@ public class ExerciseImageConfiguration : IEntityTypeConfiguration<ExerciseImage
     {
         builder.HasKey(x => x.Id);
 
+        builder.Property(x => x.ExerciseId)
+            .HasConversion(x => x.Value, x => new ExerciseId(x));
+
         builder.Property(x => x.OriginalName)
             .HasColumnType("varchar(255)")
             .IsRequired();
