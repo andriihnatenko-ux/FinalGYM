@@ -1,11 +1,9 @@
 using Domain.MuscleGroups;
 
-namespace Application.Common.Interfaces;
+namespace Application.Common.Interfaces.Repositories;
 
 public interface IMuscleGroupRepository
 {
-    Task<IReadOnlyList<MuscleGroup>> GetAll(CancellationToken cancellationToken);
-
     Task<MuscleGroup?> GetById(Guid id, CancellationToken cancellationToken);
 
     Task<MuscleGroup?> GetByName(string name, CancellationToken cancellationToken);

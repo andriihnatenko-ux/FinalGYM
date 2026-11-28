@@ -1,10 +1,11 @@
-using Application.Common.Interfaces;
+using Application.Common.Interfaces.Queries;
+using Application.Common.Interfaces.Repositories;
 using Domain.MuscleGroups;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public class MuscleGroupRepository(ApplicationDbContext context) : IMuscleGroupRepository
+public class MuscleGroupRepository(ApplicationDbContext context) : IMuscleGroupRepository, IMuscleGroupQueries
 {
     public async Task<IReadOnlyList<MuscleGroup>> GetAll(CancellationToken cancellationToken)
     {

@@ -1,20 +1,23 @@
-using Application.Common.Interfaces;
+using Application.Common.Interfaces.Queries;
+using Application.Common.Interfaces.Repositories;
 using Application.MuscleGroups.Exceptions;
 using Application.MuscleGroups.Services.Abstract;
 using Domain.MuscleGroups;
 
 namespace Application.MuscleGroups.Services.Implementation;
 
-public class MuscleGroupService(IMuscleGroupRepository muscleGroupRepository) : IMuscleGroupService
+public class MuscleGroupService(
+    IMuscleGroupRepository muscleGroupRepository,
+    IMuscleGroupQueries muscleGroupQueries) : IMuscleGroupService
 {
     public async Task<IReadOnlyList<MuscleGroup>> GetMuscleGroups(CancellationToken cancellationToken)
     {
-        return await muscleGroupRepository.GetAll(cancellationToken);
+        return await muscleGroupQueries.GetAll(cancellationToken);
     }
 
     public async Task<MuscleGroup?> GetMuscleGroup(Guid id, CancellationToken cancellationToken)
     {
-        return await muscleGroupRepository.GetById(id, cancellationToken);
+        return await muscleGroupQueries.GetById(id, cancellationToken);
     }
 
     public async Task<MuscleGroup> Add(string name, CancellationToken cancellationToken)

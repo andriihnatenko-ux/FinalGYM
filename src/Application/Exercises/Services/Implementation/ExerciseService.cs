@@ -1,4 +1,6 @@
 using Application.Common.Interfaces;
+using Application.Common.Interfaces.Queries;
+using Application.Common.Interfaces.Repositories;
 using Application.Exercises.Exceptions;
 using Application.Exercises.Services.Abstract;
 using Domain.Exercises;
@@ -7,18 +9,19 @@ namespace Application.Exercises.Services.Implementation;
 
 public class ExerciseService(
     IExerciseRepository exerciseRepository,
+    IExerciseQueries exerciseQueries,
     IMuscleGroupRepository muscleGroupRepository,
     INotificationService notificationService,
     IFileStorage fileStorage) : IExerciseService
 {
     public async Task<IReadOnlyList<Exercise>> GetExercises(CancellationToken cancellationToken)
     {
-        return await exerciseRepository.GetAll(cancellationToken);
+        return await exerciseQueries.GetAll(cancellationToken);
     }
 
     public async Task<Exercise?> GetExercise(Guid id, CancellationToken cancellationToken)
     {
-        return await exerciseRepository.GetById(id, cancellationToken);
+        return await exerciseQueries.GetById(id, cancellationToken);
     }
 
     public async Task<Exercise> Add(

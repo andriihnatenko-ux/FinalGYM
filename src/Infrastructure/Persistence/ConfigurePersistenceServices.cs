@@ -1,4 +1,5 @@
-using Application.Common.Interfaces;
+using Application.Common.Interfaces.Queries;
+using Application.Common.Interfaces.Repositories;
 using Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -35,7 +36,9 @@ public static class ConfigurePersistenceServices
     {
         services.AddScoped<ExerciseRepository>();
         services.AddScoped<IExerciseRepository>(provider => provider.GetRequiredService<ExerciseRepository>());
+        services.AddScoped<IExerciseQueries>(provider => provider.GetRequiredService<ExerciseRepository>());
         services.AddScoped<MuscleGroupRepository>();
         services.AddScoped<IMuscleGroupRepository>(provider => provider.GetRequiredService<MuscleGroupRepository>());
+        services.AddScoped<IMuscleGroupQueries>(provider => provider.GetRequiredService<MuscleGroupRepository>());
     }
 }

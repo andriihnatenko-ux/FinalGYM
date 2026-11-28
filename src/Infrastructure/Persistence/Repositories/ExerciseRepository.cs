@@ -1,10 +1,11 @@
-using Application.Common.Interfaces;
+using Application.Common.Interfaces.Queries;
+using Application.Common.Interfaces.Repositories;
 using Domain.Exercises;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public class ExerciseRepository(ApplicationDbContext context) : IExerciseRepository
+public class ExerciseRepository(ApplicationDbContext context) : IExerciseRepository, IExerciseQueries
 {
     public async Task<IReadOnlyList<Exercise>> GetAll(CancellationToken cancellationToken)
     {

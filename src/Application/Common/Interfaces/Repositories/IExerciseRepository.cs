@@ -1,11 +1,9 @@
 using Domain.Exercises;
 
-namespace Application.Common.Interfaces;
+namespace Application.Common.Interfaces.Repositories;
 
 public interface IExerciseRepository
 {
-    Task<IReadOnlyList<Exercise>> GetAll(CancellationToken cancellationToken);
-
     Task<Exercise?> GetById(Guid id, CancellationToken cancellationToken);
 
     Task<Exercise?> GetByTitle(string title, CancellationToken cancellationToken);
