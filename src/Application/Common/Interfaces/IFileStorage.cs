@@ -1,10 +1,12 @@
+using Domain.Exercises;
+
 namespace Application.Common.Interfaces;
 
 public interface IFileStorage
 {
     Task<string> SaveAsync(
-        Guid exerciseId,
-        Guid imageId,
+        ExerciseId exerciseId,
+        ExerciseImageId imageId,
         string extension,
         Stream content,
         CancellationToken cancellationToken);

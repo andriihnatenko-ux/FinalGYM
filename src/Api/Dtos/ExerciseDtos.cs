@@ -52,7 +52,7 @@ public record ExerciseAttributesDto(
 public record ExerciseImageDto(Guid Id, string OriginalName)
 {
     public static ExerciseImageDto FromDomainModel(ExerciseImage image) =>
-        new(image.Id, image.OriginalName);
+        new(image.Id.Value, image.OriginalName);
 }
 
 public record CreateExerciseDto(

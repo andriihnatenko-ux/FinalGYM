@@ -28,12 +28,12 @@ public class AddExerciseImageCommandHandler(
             return null;
         }
 
-        var image = ExerciseImage.New(Guid.NewGuid(), request.OriginalName, exerciseId);
+        var image = ExerciseImage.New(ExerciseImageId.New(), request.OriginalName, exerciseId);
         await exerciseRepository.AddImage(image, cancellationToken);
 
         var extension = Path.GetExtension(request.OriginalName);
         await fileStorage.SaveAsync(
-            request.ExerciseId,
+            exerciseId,
             image.Id,
             extension,
             request.Content,

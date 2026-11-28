@@ -1,9 +1,11 @@
+using Domain.Exercises;
+
 namespace Application.Common.Interfaces;
 
 public interface INotificationService
 {
     Task NotifyExerciseCreatedAsync(
-        Guid exerciseId,
+        ExerciseId exerciseId,
         string title,
         CancellationToken cancellationToken);
 }

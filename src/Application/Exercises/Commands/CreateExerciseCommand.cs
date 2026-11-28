@@ -55,7 +55,7 @@ public class CreateExerciseCommandHandler(
 
         await exerciseRepository.Add(exercise, cancellationToken);
         await notificationService.NotifyExerciseCreatedAsync(
-            exercise.Id.Value,
+            exercise.Id,
             exercise.Title,
             cancellationToken);
 

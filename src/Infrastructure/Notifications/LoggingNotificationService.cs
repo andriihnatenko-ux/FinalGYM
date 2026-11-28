@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Domain.Exercises;
 using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Notifications;
@@ -6,13 +7,13 @@ namespace Infrastructure.Notifications;
 public class LoggingNotificationService(ILogger<LoggingNotificationService> logger) : INotificationService
 {
     public Task NotifyExerciseCreatedAsync(
-        Guid exerciseId,
+        ExerciseId exerciseId,
         string title,
         CancellationToken cancellationToken)
     {
         logger.LogInformation(
             "Exercise {ExerciseId} ({Title}) was created",
-            exerciseId,
+            exerciseId.Value,
             title);
 
         return Task.CompletedTask;

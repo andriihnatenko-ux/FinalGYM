@@ -150,6 +150,6 @@ public class ExercisesController(ISender sender, IExerciseQueries exerciseQuerie
             return NotFound();
         }
 
-        return Created($"/exercises/{id}/images/{image.Id}", ExerciseImageDto.FromDomainModel(image));
+        return Created($"/exercises/{id}/images/{image.Id.Value}", ExerciseImageDto.FromDomainModel(image));
     }
 }
