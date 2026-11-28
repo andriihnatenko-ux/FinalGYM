@@ -22,8 +22,8 @@ public class AddExerciseImageCommandHandler(
         CancellationToken cancellationToken)
     {
         var exerciseId = new ExerciseId(request.ExerciseId);
-        var exercise = await exerciseRepository.GetById(exerciseId, cancellationToken);
-        if (exercise is null)
+        var exerciseOption = await exerciseRepository.GetById(exerciseId, cancellationToken);
+        if (exerciseOption.IsNone)
         {
             return null;
         }

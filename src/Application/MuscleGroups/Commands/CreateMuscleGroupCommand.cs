@@ -18,7 +18,7 @@ public class CreateMuscleGroupCommandHandler(IMuscleGroupRepository muscleGroupR
         CancellationToken cancellationToken)
     {
         var existingMuscleGroup = await muscleGroupRepository.GetByName(request.Name, cancellationToken);
-        if (existingMuscleGroup is not null)
+        if (existingMuscleGroup.IsSome)
         {
             throw new MuscleGroupAlreadyExistsException(request.Name);
         }

@@ -22,13 +22,10 @@ public class MuscleGroupsController(ISender sender, IMuscleGroupQueries muscleGr
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<MuscleGroupDto>> GetMuscleGroup(Guid id, CancellationToken cancellationToken)
     {
-        var muscleGroup = await muscleGroupQueries.GetById(new MuscleGroupId(id), cancellationToken);
-        if (muscleGroup is null)
-        {
-            return NotFound();
-        }
-
-        return MuscleGroupDto.FromDomainModel(muscleGroup);
+        var muscleGroupOption = await muscleGroupQueries.GetById(new MuscleGroupId(id), cancellationToken);
+        return muscleGroupOption.Match<ActionResult<MuscleGroupDto>>(
+            muscleGroup => MuscleGroupDto.FromDomainModel(muscleGroup),
+            () => NotFound());
     }
 
     [HttpPost]

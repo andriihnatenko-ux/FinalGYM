@@ -1,6 +1,7 @@
 using Application.Common.Interfaces.Queries;
 using Application.Common.Interfaces.Repositories;
 using Domain.Exercises;
+using LanguageExt;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories;
@@ -17,19 +18,23 @@ public class ExerciseRepository(ApplicationDbContext context) : IExerciseReposit
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<Exercise?> GetById(ExerciseId id, CancellationToken cancellationToken)
+    public async Task<Option<Exercise>> GetById(ExerciseId id, CancellationToken cancellationToken)
     {
-        return await context.Exercises
+        var entity = await context.Exercises
             .Include(x => x.MuscleGroups)
             .ThenInclude(x => x.MuscleGroup)
             .Include(x => x.Images)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+        return entity is null ? Option<Exercise>.None : entity;
     }
 
-    public async Task<Exercise?> GetByTitle(string title, CancellationToken cancellationToken)
+    public async Task<Option<Exercise>> GetByTitle(string title, CancellationToken cancellationToken)
     {
-        return await context.Exercises
+        var entity = await context.Exercises
             .FirstOrDefaultAsync(x => x.Title == title, cancellationToken);
+
+        return entity is null ? Option<Exercise>.None : entity;
     }
 
     public async Task<Exercise> Add(Exercise exercise, CancellationToken cancellationToken)

@@ -1,6 +1,7 @@
 using Application.Common.Interfaces.Queries;
 using Application.Common.Interfaces.Repositories;
 using Domain.MuscleGroups;
+using LanguageExt;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories;
@@ -14,16 +15,20 @@ public class MuscleGroupRepository(ApplicationDbContext context) : IMuscleGroupR
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<MuscleGroup?> GetById(MuscleGroupId id, CancellationToken cancellationToken)
+    public async Task<Option<MuscleGroup>> GetById(MuscleGroupId id, CancellationToken cancellationToken)
     {
-        return await context.MuscleGroups
+        var entity = await context.MuscleGroups
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+        return entity is null ? Option<MuscleGroup>.None : entity;
     }
 
-    public async Task<MuscleGroup?> GetByName(string name, CancellationToken cancellationToken)
+    public async Task<Option<MuscleGroup>> GetByName(string name, CancellationToken cancellationToken)
     {
-        return await context.MuscleGroups
+        var entity = await context.MuscleGroups
             .FirstOrDefaultAsync(x => x.Name == name, cancellationToken);
+
+        return entity is null ? Option<MuscleGroup>.None : entity;
     }
 
     public async Task<IReadOnlyList<MuscleGroup>> GetByIds(

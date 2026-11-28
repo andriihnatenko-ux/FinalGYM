@@ -29,14 +29,16 @@ public class UpdateExerciseCommandHandler(
         CancellationToken cancellationToken)
     {
         var exerciseId = new ExerciseId(request.Id);
-        var exercise = await exerciseRepository.GetById(exerciseId, cancellationToken);
-        if (exercise is null)
+        var exerciseOption = await exerciseRepository.GetById(exerciseId, cancellationToken);
+        if (exerciseOption.IsNone)
         {
             return null;
         }
 
+        var exercise = exerciseOption.Match(x => x, () => null!);
+
         var exerciseWithSameTitle = await exerciseRepository.GetByTitle(request.Title, cancellationToken);
-        if (exerciseWithSameTitle is not null && exerciseWithSameTitle.Id != exerciseId)
+        if (exerciseWithSameTitle.Match(x => x.Id != exerciseId, () => false))
         {
             throw new ExerciseAlreadyExistsException(request.Title);
         }
@@ -60,6 +62,7 @@ public class UpdateExerciseCommandHandler(
 
         await exerciseRepository.Update(exercise, cancellationToken);
 
-        return await exerciseRepository.GetById(exerciseId, cancellationToken) ?? exercise;
+        var reloadedExercise = await exerciseRepository.GetById(exerciseId, cancellationToken);
+        return reloadedExercise.Match<Exercise?>(x => x, () => exercise);
     }
 }

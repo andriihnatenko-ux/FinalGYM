@@ -16,12 +16,13 @@ public class DeleteExerciseCommandHandler(IExerciseRepository exerciseRepository
         DeleteExerciseCommand request,
         CancellationToken cancellationToken)
     {
-        var exercise = await exerciseRepository.GetById(new ExerciseId(request.Id), cancellationToken);
-        if (exercise is null)
+        var exerciseOption = await exerciseRepository.GetById(new ExerciseId(request.Id), cancellationToken);
+        if (exerciseOption.IsNone)
         {
             return false;
         }
 
+        var exercise = exerciseOption.Match(x => x, () => null!);
         await exerciseRepository.Delete(exercise, cancellationToken);
 
         return true;

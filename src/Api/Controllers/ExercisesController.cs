@@ -22,13 +22,10 @@ public class ExercisesController(ISender sender, IExerciseQueries exerciseQuerie
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ExerciseDto>> GetExercise(Guid id, CancellationToken cancellationToken)
     {
-        var exercise = await exerciseQueries.GetById(new ExerciseId(id), cancellationToken);
-        if (exercise is null)
-        {
-            return NotFound();
-        }
-
-        return ExerciseDto.FromDomainModel(exercise);
+        var exerciseOption = await exerciseQueries.GetById(new ExerciseId(id), cancellationToken);
+        return exerciseOption.Match<ActionResult<ExerciseDto>>(
+            exercise => ExerciseDto.FromDomainModel(exercise),
+            () => NotFound());
     }
 
     [HttpPost]

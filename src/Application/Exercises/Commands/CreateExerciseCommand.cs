@@ -30,7 +30,7 @@ public class CreateExerciseCommandHandler(
         CancellationToken cancellationToken)
     {
         var existingExercise = await exerciseRepository.GetByTitle(request.Title, cancellationToken);
-        if (existingExercise is not null)
+        if (existingExercise.IsSome)
         {
             throw new ExerciseAlreadyExistsException(request.Title);
         }
@@ -59,6 +59,7 @@ public class CreateExerciseCommandHandler(
             exercise.Title,
             cancellationToken);
 
-        return await exerciseRepository.GetById(exercise.Id, cancellationToken) ?? exercise;
+        var reloadedExercise = await exerciseRepository.GetById(exercise.Id, cancellationToken);
+        return reloadedExercise.Match(x => x, () => exercise);
     }
 }
