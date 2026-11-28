@@ -1,7 +1,7 @@
-using Application.Exercises.Services.Abstract;
-using Application.Exercises.Services.Implementation;
-using Application.MuscleGroups.Services.Abstract;
-using Application.MuscleGroups.Services.Implementation;
+using System.Reflection;
+using Application.Common.Behaviours;
+using FluentValidation;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
@@ -10,7 +10,11 @@ public static class ConfigureApplicationServices
 {
     public static void AddApplicationServices(this IServiceCollection services)
     {
-        services.AddScoped<IExerciseService, ExerciseService>();
-        services.AddScoped<IMuscleGroupService, MuscleGroupService>();
+        services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+        services.AddMediatR(configuration =>
+            configuration.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
     }
 }

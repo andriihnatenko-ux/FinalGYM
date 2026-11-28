@@ -1,25 +1,27 @@
 using Api.Dtos;
+using Application.Common.Interfaces.Queries;
+using Application.Exercises.Commands;
 using Application.Exercises.Exceptions;
-using Application.Exercises.Services.Abstract;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
 [Route("exercises")]
 [ApiController]
-public class ExercisesController(IExerciseService exerciseService) : ControllerBase
+public class ExercisesController(ISender sender, IExerciseQueries exerciseQueries) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<ExerciseDto>>> GetExercises(CancellationToken cancellationToken)
     {
-        var exercises = await exerciseService.GetExercises(cancellationToken);
+        var exercises = await exerciseQueries.GetAll(cancellationToken);
         return Ok(exercises.Select(ExerciseDto.FromDomainModel).ToList());
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ExerciseDto>> GetExercise(Guid id, CancellationToken cancellationToken)
     {
-        var exercise = await exerciseService.GetExercise(id, cancellationToken);
+        var exercise = await exerciseQueries.GetById(id, cancellationToken);
         if (exercise is null)
         {
             return NotFound();
@@ -33,19 +35,21 @@ public class ExercisesController(IExerciseService exerciseService) : ControllerB
         [FromBody] CreateExerciseDto request,
         CancellationToken cancellationToken)
     {
+        var command = new CreateExerciseCommand
+        {
+            Title = request.Title,
+            Description = request.Description,
+            CaloriesPerHour = request.CaloriesPerHour,
+            RequiresEquipment = request.RequiresEquipment,
+            Sets = request.Sets,
+            Reps = request.Reps,
+            MuscleGroupIds = request.MuscleGroupIds,
+            Attributes = request.Attributes?.ToDomainModel()
+        };
+
         try
         {
-            var exercise = await exerciseService.Add(
-                request.Title,
-                request.Description,
-                request.CaloriesPerHour,
-                request.RequiresEquipment,
-                request.Sets,
-                request.Reps,
-                request.MuscleGroupIds,
-                request.Attributes?.ToDomainModel(),
-                cancellationToken);
-
+            var exercise = await sender.Send(command, cancellationToken);
             var dto = ExerciseDto.FromDomainModel(exercise);
             return CreatedAtAction(nameof(GetExercise), new { id = dto.Id }, dto);
         }
@@ -61,10 +65,6 @@ public class ExercisesController(IExerciseService exerciseService) : ControllerB
                 missingGroupIds = exception.MissingGroupIds
             });
         }
-        catch (InvalidExerciseRequestException exception)
-        {
-            return BadRequest(exception.Message);
-        }
     }
 
     [HttpPut("{id:guid}")]
@@ -73,20 +73,22 @@ public class ExercisesController(IExerciseService exerciseService) : ControllerB
         [FromBody] UpdateExerciseDto request,
         CancellationToken cancellationToken)
     {
+        var command = new UpdateExerciseCommand
+        {
+            Id = id,
+            Title = request.Title,
+            Description = request.Description,
+            CaloriesPerHour = request.CaloriesPerHour,
+            RequiresEquipment = request.RequiresEquipment,
+            Sets = request.Sets,
+            Reps = request.Reps,
+            MuscleGroupIds = request.MuscleGroupIds,
+            Attributes = request.Attributes?.ToDomainModel()
+        };
+
         try
         {
-            var exercise = await exerciseService.Update(
-                id,
-                request.Title,
-                request.Description,
-                request.CaloriesPerHour,
-                request.RequiresEquipment,
-                request.Sets,
-                request.Reps,
-                request.MuscleGroupIds,
-                request.Attributes?.ToDomainModel(),
-                cancellationToken);
-
+            var exercise = await sender.Send(command, cancellationToken);
             if (exercise is null)
             {
                 return NotFound();
@@ -106,16 +108,13 @@ public class ExercisesController(IExerciseService exerciseService) : ControllerB
                 missingGroupIds = exception.MissingGroupIds
             });
         }
-        catch (InvalidExerciseRequestException exception)
-        {
-            return BadRequest(exception.Message);
-        }
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteExercise(Guid id, CancellationToken cancellationToken)
     {
-        var deleted = await exerciseService.Delete(id, cancellationToken);
+        var command = new DeleteExerciseCommand { Id = id };
+        var deleted = await sender.Send(command, cancellationToken);
         if (!deleted)
         {
             return NotFound();
@@ -137,7 +136,14 @@ public class ExercisesController(IExerciseService exerciseService) : ControllerB
         }
 
         await using var content = file.OpenReadStream();
-        var image = await exerciseService.AddImage(id, file.FileName, content, cancellationToken);
+        var command = new AddExerciseImageCommand
+        {
+            ExerciseId = id,
+            OriginalName = file.FileName,
+            Content = content
+        };
+
+        var image = await sender.Send(command, cancellationToken);
         if (image is null)
         {
             return NotFound();
