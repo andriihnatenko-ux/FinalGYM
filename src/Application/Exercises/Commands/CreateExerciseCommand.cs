@@ -1,0 +1,74 @@
+using Application.Common.Interfaces;
+using Application.Common.Interfaces.Repositories;
+using Application.Exercises.Exceptions;
+using Domain.Exercises;
+using MediatR;
+
+namespace Application.Exercises.Commands;
+
+public record CreateExerciseCommand : IRequest<Exercise>
+{
+    public required string Title { get; init; }
+    public required string Description { get; init; }
+    public required int CaloriesPerHour { get; init; }
+    public required bool RequiresEquipment { get; init; }
+    public required int Sets { get; init; }
+    public required int Reps { get; init; }
+    public required IReadOnlyList<Guid> MuscleGroupIds { get; init; }
+    public ExerciseAttributes? Attributes { get; init; }
+}
+
+public class CreateExerciseCommandHandler(
+    IExerciseRepository exerciseRepository,
+    IMuscleGroupRepository muscleGroupRepository,
+    INotificationService notificationService)
+    : IRequestHandler<CreateExerciseCommand, Exercise>
+{
+    public async Task<Exercise> Handle(
+        CreateExerciseCommand request,
+        CancellationToken cancellationToken)
+    {
+        var existingExercise = await exerciseRepository.GetByTitle(request.Title, cancellationToken);
+        if (existingExercise is not null)
+        {
+            throw new ExerciseAlreadyExistsException(request.Title);
+        }
+
+        await EnsureMuscleGroupsExist(request.MuscleGroupIds, cancellationToken);
+
+        var exercise = Exercise.New(
+            Guid.NewGuid(),
+            request.Title,
+            request.Description,
+            request.CaloriesPerHour,
+            request.RequiresEquipment,
+            request.Sets,
+            request.Reps,
+            request.Attributes);
+
+        exercise.SyncMuscleGroups(request.MuscleGroupIds);
+
+        await exerciseRepository.Add(exercise, cancellationToken);
+        await notificationService.NotifyExerciseCreatedAsync(
+            exercise.Id,
+            exercise.Title,
+            cancellationToken);
+
+        return await exerciseRepository.GetById(exercise.Id, cancellationToken) ?? exercise;
+    }
+
+    private async Task EnsureMuscleGroupsExist(
+        IReadOnlyList<Guid> muscleGroupIds,
+        CancellationToken cancellationToken)
+    {
+        var distinctIds = muscleGroupIds.Distinct().ToList();
+        var existingGroups = await muscleGroupRepository.GetByIds(distinctIds, cancellationToken);
+        var existingIds = existingGroups.Select(x => x.Id).ToHashSet();
+        var missingIds = distinctIds.Where(id => !existingIds.Contains(id)).ToList();
+
+        if (missingIds.Count > 0)
+        {
+            throw new MuscleGroupsNotFoundException(missingIds);
+        }
+    }
+}
