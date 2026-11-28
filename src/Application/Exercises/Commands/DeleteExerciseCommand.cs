@@ -23,12 +23,23 @@ public class DeleteExerciseCommandHandler(IExerciseRepository exerciseRepository
         var exerciseOption = await exerciseRepository.GetById(exerciseId, cancellationToken);
 
         return await exerciseOption.Match<Task<Either<ExerciseException, Unit>>>(
-            Some: async exercise =>
-            {
-                await exerciseRepository.Delete(exercise, cancellationToken);
-                return Unit.Default;
-            },
+            Some: exercise => DeleteEntity(exercise, cancellationToken),
             None: () => Task.FromResult<Either<ExerciseException, Unit>>(
                 new ExerciseNotFoundException(exerciseId)));
+    }
+
+    private async Task<Either<ExerciseException, Unit>> DeleteEntity(
+        Exercise exercise,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await exerciseRepository.Delete(exercise, cancellationToken);
+            return Unit.Default;
+        }
+        catch (Exception exception)
+        {
+            return new ExerciseUnhandledException(exercise.Id, exception);
+        }
     }
 }
