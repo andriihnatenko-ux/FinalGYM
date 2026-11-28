@@ -11,6 +11,9 @@ public class MuscleGroupConfiguration : IEntityTypeConfiguration<MuscleGroup>
     {
         builder.HasKey(x => x.Id);
 
+        builder.Property(x => x.Id)
+            .HasConversion(x => x.Value, x => new MuscleGroupId(x));
+
         builder.Property(x => x.Name)
             .HasColumnType("varchar(255)")
             .IsRequired();

@@ -1,3 +1,5 @@
+using Domain.MuscleGroups;
+
 namespace Domain.Exercises;
 
 public class Exercise
@@ -75,7 +77,7 @@ public class Exercise
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void SyncMuscleGroups(IEnumerable<Guid> muscleGroupIds)
+    public void SyncMuscleGroups(IEnumerable<MuscleGroupId> muscleGroupIds)
     {
         var targetIds = muscleGroupIds.Distinct().ToHashSet();
 

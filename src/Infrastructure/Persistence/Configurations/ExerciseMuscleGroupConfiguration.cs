@@ -1,4 +1,5 @@
 using Domain.Exercises;
+using Domain.MuscleGroups;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -14,6 +15,9 @@ public class ExerciseMuscleGroupConfiguration : IEntityTypeConfiguration<Exercis
 
         builder.Property(x => x.ExerciseId)
             .HasConversion(x => x.Value, x => new ExerciseId(x));
+
+        builder.Property(x => x.MuscleGroupId)
+            .HasConversion(x => x.Value, x => new MuscleGroupId(x));
 
         builder.HasOne(x => x.Exercise)
             .WithMany(x => x.MuscleGroups)

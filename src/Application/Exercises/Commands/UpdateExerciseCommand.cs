@@ -1,6 +1,7 @@
 using Application.Common.Interfaces.Repositories;
 using Application.Exercises.Exceptions;
 using Domain.Exercises;
+using Domain.MuscleGroups;
 using MediatR;
 
 namespace Application.Exercises.Commands;
@@ -54,7 +55,8 @@ public class UpdateExerciseCommandHandler(
             request.Reps,
             request.Attributes);
 
-        exercise.SyncMuscleGroups(request.MuscleGroupIds);
+        exercise.SyncMuscleGroups(
+            request.MuscleGroupIds.Select(id => new MuscleGroupId(id)));
 
         await exerciseRepository.Update(exercise, cancellationToken);
 

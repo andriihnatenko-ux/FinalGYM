@@ -23,7 +23,7 @@ public class CreateMuscleGroupCommandHandler(IMuscleGroupRepository muscleGroupR
             throw new MuscleGroupAlreadyExistsException(request.Name);
         }
 
-        var muscleGroup = MuscleGroup.New(Guid.NewGuid(), request.Name);
+        var muscleGroup = MuscleGroup.New(MuscleGroupId.New(), request.Name);
 
         return await muscleGroupRepository.Add(muscleGroup, cancellationToken);
     }

@@ -2,6 +2,7 @@ using Api.Dtos;
 using Application.Common.Interfaces.Queries;
 using Application.MuscleGroups.Commands;
 using Application.MuscleGroups.Exceptions;
+using Domain.MuscleGroups;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,7 +22,7 @@ public class MuscleGroupsController(ISender sender, IMuscleGroupQueries muscleGr
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<MuscleGroupDto>> GetMuscleGroup(Guid id, CancellationToken cancellationToken)
     {
-        var muscleGroup = await muscleGroupQueries.GetById(id, cancellationToken);
+        var muscleGroup = await muscleGroupQueries.GetById(new MuscleGroupId(id), cancellationToken);
         if (muscleGroup is null)
         {
             return NotFound();

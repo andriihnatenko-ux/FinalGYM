@@ -1,5 +1,6 @@
 using Application.Common.Interfaces.Repositories;
 using Application.Exercises.Exceptions;
+using Domain.MuscleGroups;
 
 namespace Application.Exercises.Commands;
 
@@ -10,10 +11,17 @@ internal static class ExerciseMuscleGroupGuard
         IReadOnlyList<Guid> muscleGroupIds,
         CancellationToken cancellationToken)
     {
-        var distinctIds = muscleGroupIds.Distinct().ToList();
+        var distinctIds = muscleGroupIds
+            .Select(id => new MuscleGroupId(id))
+            .Distinct()
+            .ToList();
+
         var existingGroups = await muscleGroupRepository.GetByIds(distinctIds, cancellationToken);
         var existingIds = existingGroups.Select(x => x.Id).ToHashSet();
-        var missingIds = distinctIds.Where(id => !existingIds.Contains(id)).ToList();
+        var missingIds = distinctIds
+            .Where(id => !existingIds.Contains(id))
+            .Select(id => id.Value)
+            .ToList();
 
         if (missingIds.Count > 0)
         {

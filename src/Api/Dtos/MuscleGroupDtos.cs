@@ -6,7 +6,7 @@ namespace Api.Dtos;
 public record MuscleGroupDto(Guid Id, string Name, DateTime CreatedAt)
 {
     public static MuscleGroupDto FromDomainModel(MuscleGroup muscleGroup) =>
-        new(muscleGroup.Id, muscleGroup.Name, muscleGroup.CreatedAt);
+        new(muscleGroup.Id.Value, muscleGroup.Name, muscleGroup.CreatedAt);
 }
 
 public record CreateMuscleGroupDto(

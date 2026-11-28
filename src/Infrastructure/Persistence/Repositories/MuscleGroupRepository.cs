@@ -14,7 +14,7 @@ public class MuscleGroupRepository(ApplicationDbContext context) : IMuscleGroupR
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<MuscleGroup?> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<MuscleGroup?> GetById(MuscleGroupId id, CancellationToken cancellationToken)
     {
         return await context.MuscleGroups
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
@@ -27,7 +27,7 @@ public class MuscleGroupRepository(ApplicationDbContext context) : IMuscleGroupR
     }
 
     public async Task<IReadOnlyList<MuscleGroup>> GetByIds(
-        IReadOnlyCollection<Guid> ids,
+        IReadOnlyCollection<MuscleGroupId> ids,
         CancellationToken cancellationToken)
     {
         return await context.MuscleGroups
