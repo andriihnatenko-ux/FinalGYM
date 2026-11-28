@@ -1,7 +1,7 @@
 using Api.Dtos;
+using Api.Modules.Errors;
 using Application.Common.Interfaces.Queries;
 using Application.MuscleGroups.Commands;
-using Application.MuscleGroups.Exceptions;
 using Domain.MuscleGroups;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -42,14 +42,6 @@ public class MuscleGroupsController(ISender sender, IMuscleGroupQueries muscleGr
                 var dto = MuscleGroupDto.FromDomainModel(muscleGroup);
                 return CreatedAtAction(nameof(GetMuscleGroup), new { id = dto.Id }, dto);
             },
-            error => error switch
-            {
-                MuscleGroupAlreadyExistsException => Conflict(error.Message),
-                MuscleGroupNotFoundException => NotFound(error.Message),
-                MuscleGroupUnhandledException => StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    error.Message),
-                _ => StatusCode(StatusCodes.Status500InternalServerError, error.Message)
-            });
+            error => error.ToObjectResult());
     }
 }

@@ -1,7 +1,7 @@
 using Api.Dtos;
+using Api.Modules.Errors;
 using Application.Common.Interfaces.Queries;
 using Application.Exercises.Commands;
-using Application.Exercises.Exceptions;
 using Domain.Exercises;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -52,7 +52,8 @@ public class ExercisesController(ISender sender, IExerciseQueries exerciseQuerie
             {
                 var dto = ExerciseDto.FromDomainModel(exercise);
                 return CreatedAtAction(nameof(GetExercise), new { id = dto.Id }, dto);
-            }, error => ToErrorResult(error));
+            },
+            error => error.ToObjectResult());
     }
 
     [HttpPut("{id:guid}")]
@@ -77,7 +78,8 @@ public class ExercisesController(ISender sender, IExerciseQueries exerciseQuerie
         var result = await sender.Send(command, cancellationToken);
 
         return result.Match<ActionResult<ExerciseDto>>(
-            exercise => ExerciseDto.FromDomainModel(exercise), error => ToErrorResult(error));
+            exercise => ExerciseDto.FromDomainModel(exercise),
+            error => error.ToObjectResult());
     }
 
     [HttpDelete("{id:guid}")]
@@ -87,7 +89,8 @@ public class ExercisesController(ISender sender, IExerciseQueries exerciseQuerie
         var result = await sender.Send(command, cancellationToken);
 
         return result.Match<IActionResult>(
-            _ => NoContent(), error => ToErrorResult(error));
+            _ => NoContent(),
+            error => error.ToObjectResult());
     }
 
     [HttpPost("{id:guid}/images")]
@@ -115,22 +118,9 @@ public class ExercisesController(ISender sender, IExerciseQueries exerciseQuerie
         return result.Match<ActionResult<ExerciseImageDto>>(
             image => Created(
                 $"/exercises/{id}/images/{image.Id.Value}",
-                ExerciseImageDto.FromDomainModel(image)), error => ToErrorResult(error));
+                ExerciseImageDto.FromDomainModel(image)),
+            error => error.ToObjectResult());
     }
-
-    private ActionResult ToErrorResult(ExerciseException exception) => exception switch
-    {
-        ExerciseAlreadyExistsException => Conflict(exception.Message),
-        ExerciseNotFoundException => NotFound(exception.Message),
-        ExerciseGroupsNotFoundException groupsNotFound => NotFound(new
-        {
-            message = groupsNotFound.Message,
-            missingGroupIds = groupsNotFound.MissingGroupIds.Select(id => id.Value)
-        }),
-        ExerciseUnhandledException => StatusCode(
-            StatusCodes.Status500InternalServerError,
-            exception.Message),
-        _ => StatusCode(StatusCodes.Status500InternalServerError, exception.Message)
-    };
 }
+
 
