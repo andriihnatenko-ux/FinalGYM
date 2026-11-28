@@ -34,7 +34,10 @@ public class CreateExerciseCommandHandler(
             throw new ExerciseAlreadyExistsException(request.Title);
         }
 
-        await EnsureMuscleGroupsExist(request.MuscleGroupIds, cancellationToken);
+        await ExerciseMuscleGroupGuard.EnsureExist(
+            muscleGroupRepository,
+            request.MuscleGroupIds,
+            cancellationToken);
 
         var exercise = Exercise.New(
             Guid.NewGuid(),
@@ -55,20 +58,5 @@ public class CreateExerciseCommandHandler(
             cancellationToken);
 
         return await exerciseRepository.GetById(exercise.Id, cancellationToken) ?? exercise;
-    }
-
-    private async Task EnsureMuscleGroupsExist(
-        IReadOnlyList<Guid> muscleGroupIds,
-        CancellationToken cancellationToken)
-    {
-        var distinctIds = muscleGroupIds.Distinct().ToList();
-        var existingGroups = await muscleGroupRepository.GetByIds(distinctIds, cancellationToken);
-        var existingIds = existingGroups.Select(x => x.Id).ToHashSet();
-        var missingIds = distinctIds.Where(id => !existingIds.Contains(id)).ToList();
-
-        if (missingIds.Count > 0)
-        {
-            throw new MuscleGroupsNotFoundException(missingIds);
-        }
     }
 }
