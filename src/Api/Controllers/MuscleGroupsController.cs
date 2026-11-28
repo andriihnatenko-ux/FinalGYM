@@ -34,16 +34,22 @@ public class MuscleGroupsController(ISender sender, IMuscleGroupQueries muscleGr
         CancellationToken cancellationToken)
     {
         var command = new CreateMuscleGroupCommand { Name = request.Name };
+        var result = await sender.Send(command, cancellationToken);
 
-        try
-        {
-            var muscleGroup = await sender.Send(command, cancellationToken);
-            var dto = MuscleGroupDto.FromDomainModel(muscleGroup);
-            return CreatedAtAction(nameof(GetMuscleGroup), new { id = dto.Id }, dto);
-        }
-        catch (MuscleGroupAlreadyExistsException exception)
-        {
-            return Conflict(exception.Message);
-        }
+        return result.Match<ActionResult<MuscleGroupDto>>(
+            muscleGroup =>
+            {
+                var dto = MuscleGroupDto.FromDomainModel(muscleGroup);
+                return CreatedAtAction(nameof(GetMuscleGroup), new { id = dto.Id }, dto);
+            },
+            error => error switch
+            {
+                MuscleGroupAlreadyExistsException => Conflict(error.Message),
+                MuscleGroupNotFoundException => NotFound(error.Message),
+                MuscleGroupUnhandledException => StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    error.Message),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, error.Message)
+            });
     }
 }
