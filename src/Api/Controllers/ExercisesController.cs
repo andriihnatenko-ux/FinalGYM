@@ -45,24 +45,14 @@ public class ExercisesController(ISender sender, IExerciseQueries exerciseQuerie
             Attributes = request.Attributes?.ToDomainModel()
         };
 
-        try
-        {
-            var exercise = await sender.Send(command, cancellationToken);
-            var dto = ExerciseDto.FromDomainModel(exercise);
-            return CreatedAtAction(nameof(GetExercise), new { id = dto.Id }, dto);
-        }
-        catch (ExerciseAlreadyExistsException exception)
-        {
-            return Conflict(exception.Message);
-        }
-        catch (MuscleGroupsNotFoundException exception)
-        {
-            return NotFound(new
+        var result = await sender.Send(command, cancellationToken);
+
+        return result.Match<ActionResult<ExerciseDto>>(
+            exercise =>
             {
-                message = exception.Message,
-                missingGroupIds = exception.MissingGroupIds
-            });
-        }
+                var dto = ExerciseDto.FromDomainModel(exercise);
+                return CreatedAtAction(nameof(GetExercise), new { id = dto.Id }, dto);
+            }, error => ToErrorResult(error));
     }
 
     [HttpPut("{id:guid}")]
@@ -84,41 +74,20 @@ public class ExercisesController(ISender sender, IExerciseQueries exerciseQuerie
             Attributes = request.Attributes?.ToDomainModel()
         };
 
-        try
-        {
-            var exercise = await sender.Send(command, cancellationToken);
-            if (exercise is null)
-            {
-                return NotFound();
-            }
+        var result = await sender.Send(command, cancellationToken);
 
-            return ExerciseDto.FromDomainModel(exercise);
-        }
-        catch (ExerciseAlreadyExistsException exception)
-        {
-            return Conflict(exception.Message);
-        }
-        catch (MuscleGroupsNotFoundException exception)
-        {
-            return NotFound(new
-            {
-                message = exception.Message,
-                missingGroupIds = exception.MissingGroupIds
-            });
-        }
+        return result.Match<ActionResult<ExerciseDto>>(
+            exercise => ExerciseDto.FromDomainModel(exercise), error => ToErrorResult(error));
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteExercise(Guid id, CancellationToken cancellationToken)
     {
         var command = new DeleteExerciseCommand { Id = id };
-        var deleted = await sender.Send(command, cancellationToken);
-        if (!deleted)
-        {
-            return NotFound();
-        }
+        var result = await sender.Send(command, cancellationToken);
 
-        return NoContent();
+        return result.Match<IActionResult>(
+            _ => NoContent(), error => ToErrorResult(error));
     }
 
     [HttpPost("{id:guid}/images")]
@@ -141,12 +110,27 @@ public class ExercisesController(ISender sender, IExerciseQueries exerciseQuerie
             Content = content
         };
 
-        var image = await sender.Send(command, cancellationToken);
-        if (image is null)
-        {
-            return NotFound();
-        }
+        var result = await sender.Send(command, cancellationToken);
 
-        return Created($"/exercises/{id}/images/{image.Id.Value}", ExerciseImageDto.FromDomainModel(image));
+        return result.Match<ActionResult<ExerciseImageDto>>(
+            image => Created(
+                $"/exercises/{id}/images/{image.Id.Value}",
+                ExerciseImageDto.FromDomainModel(image)), error => ToErrorResult(error));
     }
+
+    private ActionResult ToErrorResult(ExerciseException exception) => exception switch
+    {
+        ExerciseAlreadyExistsException => Conflict(exception.Message),
+        ExerciseNotFoundException => NotFound(exception.Message),
+        ExerciseGroupsNotFoundException groupsNotFound => NotFound(new
+        {
+            message = groupsNotFound.Message,
+            missingGroupIds = groupsNotFound.MissingGroupIds.Select(id => id.Value)
+        }),
+        ExerciseUnhandledException => StatusCode(
+            StatusCodes.Status500InternalServerError,
+            exception.Message),
+        _ => StatusCode(StatusCodes.Status500InternalServerError, exception.Message)
+    };
 }
+
