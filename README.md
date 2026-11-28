@@ -33,9 +33,33 @@ single PostgreSQL `jsonb` column.
 | Project | Responsibility |
 | --- | --- |
 | `Domain` | Entities, value objects and domain rules, no external dependencies |
-| `Application` | Business logic, service and repository abstractions |
+| `Application` | Commands, queries, validators and repository abstractions |
 | `Infrastructure` | EF Core persistence, file storage and notifications |
 | `Api` | Controllers, DTOs and application setup |
+
+## Architecture
+
+Write operations are modelled as MediatR commands handled in `Application`.
+Read operations go through the `IExerciseQueries` and `IMuscleGroupQueries`
+interfaces, so controllers never depend on the write side for reads.
+
+```csharp
+[HttpPost]
+public async Task<ActionResult<ExerciseDto>> CreateExercise(
+    [FromBody] CreateExerciseDto request,
+    CancellationToken cancellationToken)
+{
+    var command = new CreateExerciseCommand { /* ... */ };
+    var result = await sender.Send(command, cancellationToken);
+    // ...
+}
+```
+
+Each command has a FluentValidation validator in the same folder. The
+`ValidationBehaviour` pipeline behaviour runs all registered validators before
+the handler, and `ValidationExceptionFilter` turns failures into a
+`400 ValidationProblemDetails` response. Data annotation failures on DTOs are
+handled by `[ApiController]` in the same shape.
 
 ## Persistence
 
