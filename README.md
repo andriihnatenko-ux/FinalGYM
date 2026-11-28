@@ -61,6 +61,31 @@ the handler, and `ValidationExceptionFilter` turns failures into a
 `400 ValidationProblemDetails` response. Data annotation failures on DTOs are
 handled by `[ApiController]` in the same shape.
 
+## Typed identifiers
+
+`Exercise`, `MuscleGroup` and `ExerciseImage` expose strongly typed ids
+(`ExerciseId`, `MuscleGroupId`, `ExerciseImageId`) instead of raw `Guid`s.
+EF Core value converters keep the database columns as `uuid`, so the schema
+does not change.
+
+Repository lookups return `Option<T>` rather than nullable references, and
+command handlers return `Either<TError, TResult>`. Controllers unwrap the
+result with `Match`, mapping the error side to a response.
+
+## Error handling
+
+Each aggregate has an exception hierarchy in `Application`:
+
+| Error | Status |
+| --- | --- |
+| `...AlreadyExistsException` | `409 Conflict` |
+| `...NotFoundException` | `404 Not Found` |
+| `ExerciseGroupsNotFoundException` | `404 Not Found` with the missing ids |
+| `...UnhandledException` | `500 Internal Server Error` |
+
+`ExerciseErrorFactory` and `MuscleGroupErrorFactory` in `Api` convert those
+errors into `ObjectResult`s, so controllers stay free of `try`/`catch` blocks.
+
 ## Persistence
 
 PostgreSQL is accessed through EF Core with snake_case naming. The connection
